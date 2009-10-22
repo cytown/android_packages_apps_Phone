@@ -42,6 +42,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import android.provider.Contacts.Organizations;
+
 /**
  * "Call card" UI element: the in-call screen contains a tiled layout of call
  * cards, each representing the state of a current "call" (ie. an active call,
@@ -111,6 +113,9 @@ public class CallCard extends FrameLayout
     static final int CALLCARD_SIDE_MARGIN_LANDSCAPE = 50;
     static final float TITLE_TEXT_SIZE_LANDSCAPE = 22F;  // scaled pixels
 
+// add by cytown
+private CallFeaturesSetting mSettings;
+
     public CallCard(Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -126,6 +131,9 @@ public class CallCard extends FrameLayout
                 true);
 
         mApplication = PhoneApp.getInstance();
+
+// add by cytown
+mSettings = CallFeaturesSetting.getInstance(android.preference.PreferenceManager.getDefaultSharedPreferences(context));
 
         mCallTime = new CallTime(this);
 
@@ -1067,6 +1075,8 @@ public class CallCard extends FrameLayout
         String label = null;
         Uri personUri = null;
 
+boolean updateName = false;
+
         if (info != null) {
             // It appears that there is a small change in behaviour with the
             // PhoneUtils' startGetCallerInfo whereby if we query with an
@@ -1106,6 +1116,8 @@ public class CallCard extends FrameLayout
                     name = info.name;
                     displayNumber = info.phoneNumber;
                     label = info.phoneLabel;
+// add by cytown for show organization
+updateName = true;
                 }
             }
             personUri = ContentUris.withAppendedId(People.CONTENT_URI, info.person_id);
@@ -1116,7 +1128,13 @@ public class CallCard extends FrameLayout
         if (call.isGeneric()) {
             mName.setText(R.string.card_title_in_call);
         } else {
+String oldname = mName.getText().toString();
+if (oldname == null || !(oldname.equals(name) || oldname.startsWith(name + "-"))) {
             mName.setText(name);
+    if (updateName && mSettings.mShowOrgan) {
+        updateOrganization(info.person_id);
+    }
+}
         }
         mName.setVisibility(View.VISIBLE);
 
@@ -1155,6 +1173,28 @@ public class CallCard extends FrameLayout
         }
     }
 
+private void updateOrganization(final long person_id) {
+//    Thread t = new Thread(new Runnable() {
+
+//        public void run() {
+            android.database.Cursor c = CallCard.this.getContext().getContentResolver().query(Organizations.CONTENT_URI,
+                    new String[] { Organizations.COMPANY },
+                    Organizations.PERSON_ID + " = ? and " + Organizations.ISPRIMARY + " > ?", new String[] { person_id + "", "0" },
+                    null);
+            if (c != null) {
+                if (c.moveToNext()) {
+                    try {
+//System.out.println("show organ");
+                        mName.setText(mName.getText() + "-" + c.getString(0));
+//                        mName.invalidate();
+                    } catch (Exception e) {}
+                }
+                c.close();
+            }
+//        }
+//    });
+//    t.start();
+}
 
     private String getPresentationString(int presentation) {
         String name = getContext().getString(R.string.unknown);

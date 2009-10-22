@@ -46,6 +46,10 @@ import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.cdma.TtyIntent;
 import android.content.Context;
 
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.preference.PreferenceManager;
+
 public class CallFeaturesSetting extends PreferenceActivity
         implements DialogInterface.OnClickListener,
         Preference.OnPreferenceChangeListener,
@@ -205,6 +209,25 @@ public class CallFeaturesSetting extends PreferenceActivity
     /** string to hold old voicemail number as it is being updated. */
     private String mOldVmNumber;
 
+// add by cytown for vibrate
+private static final String BUTTON_VIBRATE_OUTGOING   = "button_vibrate_outgoing";
+private CheckBoxPreference mButtonVibOutgoing;
+static boolean mVibOutgoing;
+private static final String BUTTON_VIBRATE_45   = "button_vibrate_45";
+private CheckBoxPreference mButtonVib45;
+static boolean mVib45;
+private static final String BUTTON_VIBRATE_HANGUP   = "button_vibrate_hangup";
+private CheckBoxPreference mButtonVibHangup;
+static boolean mVibHangup;
+private static final String BUTTON_SCREEN_AWAKE   = "button_screen_awake";
+private CheckBoxPreference mButtonScreenAwake;
+static boolean mScreenAwake;
+private static final String BUTTON_LED_NOTIFY   = "button_led_notify";
+private CheckBoxPreference mButtonLedNotify;
+static boolean mLedNotify;
+private static final String BUTTON_SHOW_ORGAN   = "button_show_organ";
+private CheckBoxPreference mButtonShowOrgan;
+static boolean mShowOrgan;
 
     /*
      * Click Listeners, handle click based on objects attached to UI.
@@ -1542,6 +1565,22 @@ public class CallFeaturesSetting extends PreferenceActivity
         }
 
         updateVoiceNumberField();
+
+// add by cytown for vibrate
+init(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+mButtonVibOutgoing = (CheckBoxPreference) prefSet.findPreference(BUTTON_VIBRATE_OUTGOING);
+mButtonVibOutgoing.setChecked(mVibOutgoing);
+mButtonVib45       = (CheckBoxPreference) prefSet.findPreference(BUTTON_VIBRATE_45);
+mButtonVib45.setChecked(mVib45);
+mButtonVibHangup   = (CheckBoxPreference) prefSet.findPreference(BUTTON_VIBRATE_HANGUP);
+mButtonVibHangup.setChecked(mVibHangup);
+mButtonScreenAwake = (CheckBoxPreference) prefSet.findPreference(BUTTON_SCREEN_AWAKE);
+mButtonScreenAwake.setChecked(mScreenAwake);
+mButtonLedNotify   = (CheckBoxPreference) prefSet.findPreference(BUTTON_LED_NOTIFY);
+mButtonLedNotify.setChecked(mLedNotify);
+mButtonShowOrgan   = (CheckBoxPreference) prefSet.findPreference(BUTTON_SHOW_ORGAN);
+mButtonShowOrgan.setChecked(mShowOrgan);
+
     }
 
     @Override
@@ -1872,6 +1911,39 @@ public class CallFeaturesSetting extends PreferenceActivity
                 + ((vpArray[0] != 0) ? "ENABLED" : "DISABLED"));
         mButtonVoicePrivacy.setChecked(vpArray[0] != 0);
     }
+
+// add by cytown
+public static CallFeaturesSetting getInstance(SharedPreferences pref) {
+    CallFeaturesSetting mInstance = new CallFeaturesSetting();
+    mInstance.init(pref);
+    return mInstance;
+}
+
+private void init(SharedPreferences pref) {
+    mVibOutgoing = pref.getBoolean(BUTTON_VIBRATE_OUTGOING, true);
+    mVib45       = pref.getBoolean(BUTTON_VIBRATE_45, false);
+    mVibHangup   = pref.getBoolean(BUTTON_VIBRATE_HANGUP, true);
+    mScreenAwake = pref.getBoolean(BUTTON_SCREEN_AWAKE, false);
+    mLedNotify   = pref.getBoolean(BUTTON_LED_NOTIFY, true);
+    mShowOrgan   = pref.getBoolean(BUTTON_SHOW_ORGAN, false);
+}
+
+// add by cytown
+@Override
+protected void onDestroy() {
+    //System.out.println("save please!");
+    SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+    Editor outState = pref.edit();
+    outState.putBoolean(BUTTON_VIBRATE_OUTGOING, mButtonVibOutgoing.isChecked());
+    outState.putBoolean(BUTTON_VIBRATE_45, mButtonVib45.isChecked());
+    outState.putBoolean(BUTTON_VIBRATE_HANGUP, mButtonVibHangup.isChecked());
+    outState.putBoolean(BUTTON_SCREEN_AWAKE, mButtonScreenAwake.isChecked());
+    outState.putBoolean(BUTTON_LED_NOTIFY, mButtonLedNotify.isChecked());
+    outState.putBoolean(BUTTON_SHOW_ORGAN, mButtonShowOrgan.isChecked());
+    outState.commit();
+    init(pref);
+    super.onDestroy();
+}
 
     private static void log(String msg) {
         Log.d(LOG_TAG, msg);

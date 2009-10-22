@@ -182,6 +182,9 @@ public class PhoneApp extends Application {
     /** boolean indicating restoring mute state on InCallScreen.onResume() */
     private boolean mShouldRestoreMuteOnInCallResume;
 
+// add by cytown
+private CallFeaturesSetting mSettings;
+
     /**
      * Set the restore mute state flag. Used when we are setting the mute state
      * OUTSIDE of user interaction {@link PhoneUtils#startNewCall(Phone)}
@@ -421,6 +424,9 @@ public class PhoneApp extends Application {
 
         // start with the default value to set the mute state.
         mShouldRestoreMuteOnInCallResume = false;
+
+// add by cytown
+mSettings = CallFeaturesSetting.getInstance(PreferenceManager.getDefaultSharedPreferences(this));
 
         // Register for Cdma Information Records
         // TODO(Moto): Merge
@@ -675,7 +681,8 @@ public class PhoneApp extends Application {
                 // timeout (5s). This ensures that the screen goes to sleep
                 // as soon as acceptably possible after we the wake lock
                 // has been released.
-                pokeLockSetting |= LocalPowerManager.POKE_LOCK_SHORT_TIMEOUT;
+//                pokeLockSetting |= LocalPowerManager.POKE_LOCK_SHORT_TIMEOUT;
+pokeLockSetting |= mSettings.mScreenAwake ? LocalPowerManager.POKE_LOCK_MEDIUM_TIMEOUT : LocalPowerManager.POKE_LOCK_SHORT_TIMEOUT;
                 break;
 
             case MEDIUM:
@@ -839,7 +846,8 @@ public class PhoneApp extends Application {
                 // holding the phone up to their face.  Here we use a
                 // special screen timeout value specific to the in-call
                 // screen, purely to save battery life.
-                setScreenTimeout(ScreenTimeoutDuration.MEDIUM);
+//                setScreenTimeout(ScreenTimeoutDuration.MEDIUM);
+setScreenTimeout(mSettings.mScreenAwake ? ScreenTimeoutDuration.DEFAULT : ScreenTimeoutDuration.MEDIUM);
             }
         }
 

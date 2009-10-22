@@ -673,9 +673,11 @@ public class InCallScreen extends Activity
 
     @Override
     protected void onPause() {
-        if (DBG) log("onPause()...");
+//        if (DBG) log("onPause()...");
         super.onPause();
 
+if (mPhone.getState() != Phone.State.RINGING) {
+    if (DBG) log("onPause()...");
         mIsForegroundActivity = false;
 
         final PhoneApp app = PhoneApp.getInstance();
@@ -759,6 +761,7 @@ public class InCallScreen extends Activity
         // Make sure we revert the poke lock and wake lock when we move to
         // the background.
         app.updateWakeState();
+}
     }
 
     @Override
