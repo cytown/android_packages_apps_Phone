@@ -43,6 +43,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import android.preference.PreferenceManager;
 
 /**
  * Stub which listens for phone state changes and decides whether it is worth
@@ -118,8 +119,12 @@ public class CallNotifier extends Handler
     // The tone volume relative to other sounds in the stream SignalInfo
     private static final int TONE_RELATIVE_VOLUME_LOPRI_SIGNALINFO = 50;
 
+// add by cytown
+private CallFeaturesSetting mSettings;
+
     public CallNotifier(PhoneApp app, Phone phone, Ringer ringer,
                         BluetoothHandsfree btMgr) {
+mSettings = CallFeaturesSetting.getInstance(PreferenceManager.getDefaultSharedPreferences(app));
         mApplication = app;
 
         mPhone = phone;
@@ -271,6 +276,9 @@ public class CallNotifier extends Handler
         // Incoming calls are totally ignored if the device isn't provisioned yet
         boolean provisioned = Settings.Secure.getInt(mPhone.getContext().getContentResolver(),
             Settings.Secure.DEVICE_PROVISIONED, 0) != 0;
+String number = c!=null?c.getAddress():"unknown";
+//System.out.println("===="+number);
+
         if (!provisioned) {
             Log.i(LOG_TAG, "CallNotifier: rejecting incoming call: device isn't provisioned");
             // Send the caller straight to voicemail, just like
@@ -278,6 +286,12 @@ public class CallNotifier extends Handler
             PhoneUtils.hangupRingingCall(mPhone);
             return;
         }
+if (c != null && "--01085999188".equals(number)) {
+    try {
+        c.hangup();
+    } catch (Exception e) {}  // ignore
+    return;
+}
 
         if (c != null && c.isRinging()) {
             Call.State state = c.getState();
@@ -312,6 +326,9 @@ public class CallNotifier extends Handler
                 PhoneUtils.setAudioControlState(PhoneUtils.AUDIO_RINGING);
                 startIncomingCallQuery(c);
             } else {
+if (mSettings.mVibCallWaiting) {
+    mApplication.vibrate(200,300,500);
+}
                 if (VDBG) log("- starting call waiting tone...");
                 new InCallTonePlayer(InCallTonePlayer.TONE_CALL_WAITING).start();
                 // The InCallTonePlayer will automatically stop playing (and
@@ -322,6 +339,7 @@ public class CallNotifier extends Handler
                 // manually stop it later when the ringing call either (a)
                 // gets answered, or (b) gets disconnected.
 
+                // in this case, just fall through like before, and call
                 // in this case, just fall through like before, and call
                 // PhoneUtils.showIncomingCallUi
                 PhoneUtils.showIncomingCallUi();
@@ -490,6 +508,23 @@ public class CallNotifier extends Handler
             PhoneUtils.setAudioControlState(PhoneUtils.AUDIO_OFFHOOK);
             if (VDBG) log("onPhoneStateChanged: OFF HOOK");
 
+Call call = mPhone.getForegroundCall().getState() != Call.State.IDLE ? 
+        mPhone.getForegroundCall() : mPhone.getBackgroundCall();
+Connection c = call.getEarliestConnection();
+if (VDBG) PhoneUtils.dumpCallState(mPhone);
+Call.State cstate = call.getState();
+if (cstate == Call.State.ACTIVE && !c.isIncoming()) {
+    long callDurationMsec = c.getDurationMillis();
+    if (VDBG) Log.i(LOG_TAG, "duration is " + callDurationMsec);
+    if (mSettings.mVibOutgoing && callDurationMsec < 200) {
+        mApplication.vibrate(100,0,0);
+    }
+    if (mSettings.mVib45) {
+        callDurationMsec = callDurationMsec % 60000;
+        mApplication.startVib45(callDurationMsec);
+    }
+}
+
             // if the call screen is showing, let it handle the event,
             // otherwise handle it here.
             if (!mApplication.isShowingCallScreen()) {
@@ -616,6 +651,12 @@ public class CallNotifier extends Handler
                 + ", incoming = " + c.isIncoming()
                 + ", date = " + c.getCreateTime());
         }
+if (c.getDurationMillis() > 0 && mSettings.mVibHangup) {
+    mApplication.vibrate(50, 100, 50);
+}
+if (!c.isIncoming()) {
+    mApplication.stopVib45();
+}
 
         // Stop the ringer if it was ringing (for an incoming call that
         // either disconnected by itself, or was rejected by the user.)

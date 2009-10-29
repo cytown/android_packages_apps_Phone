@@ -228,6 +228,9 @@ static boolean mLedNotify;
 private static final String BUTTON_SHOW_ORGAN   = "button_show_organ";
 private CheckBoxPreference mButtonShowOrgan;
 static boolean mShowOrgan;
+private static final String BUTTON_VIBRATE_CALL_WAITING = "button_vibrate_call_waiting";
+private CheckBoxPreference mButtonVibCallWaiting;
+static boolean mVibCallWaiting;
 
     /*
      * Click Listeners, handle click based on objects attached to UI.
@@ -1580,6 +1583,8 @@ mButtonLedNotify   = (CheckBoxPreference) prefSet.findPreference(BUTTON_LED_NOTI
 mButtonLedNotify.setChecked(mLedNotify);
 mButtonShowOrgan   = (CheckBoxPreference) prefSet.findPreference(BUTTON_SHOW_ORGAN);
 mButtonShowOrgan.setChecked(mShowOrgan);
+mButtonVibCallWaiting = (CheckBoxPreference) prefSet.findPreference(BUTTON_VIBRATE_CALL_WAITING);
+mButtonVibCallWaiting.setChecked(mVibCallWaiting);
 
     }
 
@@ -1926,6 +1931,7 @@ private void init(SharedPreferences pref) {
     mScreenAwake = pref.getBoolean(BUTTON_SCREEN_AWAKE, false);
     mLedNotify   = pref.getBoolean(BUTTON_LED_NOTIFY, true);
     mShowOrgan   = pref.getBoolean(BUTTON_SHOW_ORGAN, false);
+    mVibCallWaiting = pref.getBoolean(BUTTON_VIBRATE_CALL_WAITING, false);
 }
 
 // add by cytown
@@ -1940,6 +1946,7 @@ protected void onDestroy() {
     outState.putBoolean(BUTTON_SCREEN_AWAKE, mButtonScreenAwake.isChecked());
     outState.putBoolean(BUTTON_LED_NOTIFY, mButtonLedNotify.isChecked());
     outState.putBoolean(BUTTON_SHOW_ORGAN, mButtonShowOrgan.isChecked());
+    outState.putBoolean(BUTTON_VIBRATE_CALL_WAITING, mButtonVibCallWaiting.isChecked());
     outState.commit();
     init(pref);
     super.onDestroy();

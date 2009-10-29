@@ -1310,7 +1310,7 @@ private void updateOrganization(final long person_id) {
             case DIALING:
             case ALERTING:
                 photoImageResource = R.drawable.picture_dialing;
-                break;
+//                break;
 
             default:
                 // Leave the photo alone in all other states.

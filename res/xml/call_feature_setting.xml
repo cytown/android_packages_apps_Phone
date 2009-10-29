@@ -147,6 +147,11 @@
         android:persistent="false"
         android:summary="@string/vibrate_hangup_sum"/>
     <CheckBoxPreference
+        android:key="button_vibrate_call_waiting"
+        android:title="@string/vibrate_call_waiting"
+        android:persistent="false"
+        android:summary="@string/vibrate_call_waiting_sum"/>
+    <CheckBoxPreference
         android:key="button_screen_awake"
         android:title="@string/screen_awake"
         android:persistent="false"

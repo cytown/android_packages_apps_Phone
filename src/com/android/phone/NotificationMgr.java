@@ -46,8 +46,6 @@ import com.android.internal.telephony.CallerInfoAsyncQuery;
 import com.android.internal.telephony.Connection;
 import com.android.internal.telephony.Phone;
 
-import android.os.Vibrator;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 
 /**
@@ -107,7 +105,6 @@ public class NotificationMgr implements CallerInfoAsyncQuery.OnQueryCompleteList
     private IBinder mSpeakerphoneIcon;
     private IBinder mMuteIcon;
 
-private Vibrator mVibrator;
 private CallFeaturesSetting mSettings;
 
     // used to track the missed call counter, default to 0.
@@ -129,9 +126,7 @@ private CallFeaturesSetting mSettings;
 
     NotificationMgr(Context context) {
         mContext = context;
-mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 mSettings = CallFeaturesSetting.getInstance(PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext()));
-//System.out.println(mSettings.mVibOutgoing);
         mNotificationMgr = (NotificationManager)
             context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -555,17 +550,6 @@ notification);
         }
     }
 
-private boolean isOutGoing = false;
-private boolean isTalking = false;
-private Handler vibrateHandler = new Handler();
-private Runnable vibrateRun = new Runnable() {
-    public void run() {
-        mVibrator.vibrate(70);
-//System.out.println("45sec");
-        vibrateHandler.postDelayed(this, 60000);
-    }
-};
-
     void updateInCallNotification() {
         updateInCallNotification(false);
     }
@@ -678,24 +662,10 @@ private Runnable vibrateRun = new Runnable() {
                 // Format string with a "%s" where the current call time should go.
 if (callDurationMsec > 0) {
                 expandedViewLine1 = mContext.getString(R.string.notification_ongoing_call_format);
-    //System.out.println("outgoing");
-    if (isOutGoing && mSettings.mVibOutgoing) {
-        mVibrator.vibrate(100);
-        //System.out.println("outgoing vibrate");
-    }
-    if (isOutGoing && !isTalking && mSettings.mVib45) {
-        //System.out.println("start");
-        vibrateHandler.removeCallbacks(vibrateRun);
-        vibrateHandler.postDelayed(vibrateRun, 45000 - callDurationMsec);
-    }
-    isOutGoing = false;
-    isTalking = true;
 } else {
     expandedViewLine1 = mContext.getString(R.string.notification_ongoing_calling_format);
-    //System.out.println("calling");
-    isOutGoing = true;
-    isTalking = false;
-}            }
+}
+            }
 
             if (DBG) log("- Updating expanded view: line 1 '" + expandedViewLine1 + "'");
 
@@ -766,20 +736,6 @@ if (callDurationMsec > 0) {
         cancelMute();
         cancelSpeakerphone();
         mNotificationMgr.cancel(IN_CALL_NOTIFICATION);
-//System.out.println("cancel");
-vibrateHandler.removeCallbacks(vibrateRun);
-if (isTalking && mSettings.mVibHangup) {
-    Thread t = new Thread(){
-        public void run(){
-            mVibrator.vibrate(50);
-            SystemClock.sleep(100);
-            mVibrator.vibrate(50);
-            //System.out.println("hang up");
-        }};
-    t.start();
-}
-isTalking = false;
-isOutGoing = false;
         mInCallResId = 0;
     }
 

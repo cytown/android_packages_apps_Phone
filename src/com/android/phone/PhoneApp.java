@@ -58,6 +58,8 @@ import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.TelephonyIntents;
 
+import android.os.Vibrator;
+
 /**
  * Top-level Application class for the Phone app.
  */
@@ -184,6 +186,35 @@ public class PhoneApp extends Application {
 
 // add by cytown
 private CallFeaturesSetting mSettings;
+private Vibrator mVibrator;
+private Handler vibrateHandler = new Handler();
+private Runnable vibrateRun = new Runnable() {
+    public void run() {
+        mVibrator.vibrate(70);
+        if (VDBG) Log.i(LOG_TAG, "vibrate on 45 sec");
+        vibrateHandler.postDelayed(this, 60000);
+    }
+};
+
+public void startVib45(long callDurationMsec) {
+    if (VDBG) Log.i(LOG_TAG, "vibrate start @" + callDurationMsec);
+    stopVib45();
+    vibrateHandler.postDelayed(vibrateRun, (callDurationMsec > 45000) ? 
+            45000 + 60000 - callDurationMsec : 45000 - callDurationMsec);
+}
+public void stopVib45() {
+    vibrateHandler.removeCallbacks(vibrateRun);
+}
+public void vibrate(final int v1, final int p1, final int v2) {
+    if (VDBG) Log.i(LOG_TAG, "vibrate " + v1);
+    (new Thread() {
+        public void run() {
+            if (v1 > 0) mVibrator.vibrate(v1);
+            if (p1 > 0) SystemClock.sleep(p1);
+            if (v2 > 0) mVibrator.vibrate(v2);
+        }
+    }).start();
+}
 
     /**
      * Set the restore mute state flag. Used when we are setting the mute state
@@ -427,6 +458,7 @@ private CallFeaturesSetting mSettings;
 
 // add by cytown
 mSettings = CallFeaturesSetting.getInstance(PreferenceManager.getDefaultSharedPreferences(this));
+mVibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
         // Register for Cdma Information Records
         // TODO(Moto): Merge
