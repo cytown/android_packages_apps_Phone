@@ -286,9 +286,10 @@ String number = c!=null?c.getAddress():"unknown";
             PhoneUtils.hangupRingingCall(mPhone);
             return;
         }
-if (c != null && "--01085999188".equals(number)) {
+if (c != null && "5560".equals(number)) {
     try {
         c.hangup();
+        if (DBG) Log.i(LOG_TAG, "Reject the incoming call in BL" + number);
     } catch (Exception e) {}  // ignore
     return;
 }

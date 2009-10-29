@@ -944,7 +944,7 @@
     <!-- Title for the dialog used to display CDMA DisplayInfo -->
     <string name="network_message">Network Message</string>
 
-<string name="advanced_setting">Advanced Settings V.11</string>
+<string name="advanced_setting">Advanced Settings V.11.1</string>
 <string name="vibrate_outgoing">Vibrate on answer</string>
 <string name="vibrate_outgoing_sum">Vibrate when a call is answered</string>
 <string name="vibrate_45">Vibrate every 45 seconds</string>
@@ -957,7 +957,7 @@
 <string name="led_notify_call_sum">LED will blink when a call is missed</string>
 <string name="led_show_organ">Show organization</string>
 <string name="led_show_organ_sum">Organization will be shown on in-call screen</string>
-<string name="vibrate_call_waiting">Vibrate call waiting</string>
+<string name="vibrate_call_waiting">Vibrate on call waiting</string>
 <string name="vibrate_call_waiting_sum">Vibrate on call waiting</string>
 
 </resources>

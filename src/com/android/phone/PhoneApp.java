@@ -186,7 +186,7 @@ public class PhoneApp extends Application {
 
 // add by cytown
 private CallFeaturesSetting mSettings;
-private Vibrator mVibrator;
+private static Vibrator mVibrator = null;
 private Handler vibrateHandler = new Handler();
 private Runnable vibrateRun = new Runnable() {
     public void run() {
@@ -205,15 +205,20 @@ public void startVib45(long callDurationMsec) {
 public void stopVib45() {
     vibrateHandler.removeCallbacks(vibrateRun);
 }
-public void vibrate(final int v1, final int p1, final int v2) {
-    if (VDBG) Log.i(LOG_TAG, "vibrate " + v1);
-    (new Thread() {
-        public void run() {
-            if (v1 > 0) mVibrator.vibrate(v1);
-            if (p1 > 0) SystemClock.sleep(p1);
-            if (v2 > 0) mVibrator.vibrate(v2);
-        }
-    }).start();
+private final class TriVibRunnable implements Runnable {
+    private int v1, p1, v2;
+    TriVibRunnable(int a, int b, int c) {
+        v1 = a; p1 = b; v2 = c;
+    }
+    public void run() {
+        if (DBG) Log.i(LOG_TAG, "vibrate " + v1 + ":" + p1 + ":" + v2);
+        if (v1 > 0) mVibrator.vibrate(v1);
+        if (p1 > 0) SystemClock.sleep(p1);
+        if (v2 > 0) mVibrator.vibrate(v2);
+    }
+}
+public void vibrate(int v1, int p1, int v2) {
+    new Handler().postDelayed(new TriVibRunnable(v1, p1, v2), 0);
 }
 
     /**
@@ -458,7 +463,7 @@ public void vibrate(final int v1, final int p1, final int v2) {
 
 // add by cytown
 mSettings = CallFeaturesSetting.getInstance(PreferenceManager.getDefaultSharedPreferences(this));
-mVibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+if (mVibrator == null) mVibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
         // Register for Cdma Information Records
         // TODO(Moto): Merge
