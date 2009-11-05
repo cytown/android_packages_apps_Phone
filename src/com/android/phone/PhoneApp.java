@@ -218,7 +218,7 @@ private final class TriVibRunnable implements Runnable {
     }
 }
 public void vibrate(int v1, int p1, int v2) {
-    new Handler().postDelayed(new TriVibRunnable(v1, p1, v2), 0);
+    new Handler().post(new TriVibRunnable(v1, p1, v2));
 }
 
     /**
@@ -482,6 +482,10 @@ if (mVibrator == null) mVibrator = (Vibrator) this.getSystemService(Context.VIBR
     static PhoneApp getInstance() {
         return sMe;
     }
+
+CallFeaturesSetting getSettings() {
+    return mSettings;
+}
 
     Ringer getRinger() {
         return ringer;

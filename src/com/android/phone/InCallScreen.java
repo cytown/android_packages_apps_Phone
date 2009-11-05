@@ -2451,6 +2451,15 @@ if (mPhone.getState() != Phone.State.RINGING) {
                 PhoneUtils.hangup(mPhone);
                 break;
 
+case R.id.menuAddBlackList:
+    if (VDBG) log("onClick: AddBlackList...");
+    //======
+    Connection c = PhoneUtils.getConnection(mPhone, PhoneUtils.getCurrentCall(mPhone));
+    String number = c.getAddress();
+    if (DBG) log("Add to Black List: " + number);
+    PhoneApp.getInstance().getSettings().addBlackList(number);
+    PhoneUtils.hangup(mPhone);
+    break;
             default:
                 Log.w(LOG_TAG,
                       "Got click from unexpected View ID " + id + " (View = " + view + ")");

@@ -166,6 +166,21 @@
         android:title="@string/led_show_organ"
         android:persistent="false"
         android:summary="@string/led_show_organ_sum"/>
+    <PreferenceScreen
+        android:key="button_black_list"
+        android:title="@string/black_list"
+        android:summary="@string/black_list_sum"
+        android:persistent="false">
+        <com.android.phone.EditPhoneNumberPreference
+            android:key="button_add_black"
+            android:title="@string/add_black"
+            android:persistent="false"
+            android:dialogTitle="@string/add_black"
+            phone:confirmMode="confirm"
+            android:singleLine="true"
+            android:autoText="false"/>
+        <PreferenceCategory android:key="cat_black_list" android:title="@string/black_list"/>
+    </PreferenceScreen>
 </PreferenceCategory>
 
 </PreferenceScreen>

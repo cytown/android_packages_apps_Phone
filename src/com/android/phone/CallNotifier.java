@@ -121,6 +121,7 @@ public class CallNotifier extends Handler
 
 // add by cytown
 private CallFeaturesSetting mSettings;
+private static final String BLACKLIST = "blacklist";
 
     public CallNotifier(PhoneApp app, Phone phone, Ringer ringer,
                         BluetoothHandsfree btMgr) {
@@ -276,8 +277,8 @@ mSettings = CallFeaturesSetting.getInstance(PreferenceManager.getDefaultSharedPr
         // Incoming calls are totally ignored if the device isn't provisioned yet
         boolean provisioned = Settings.Secure.getInt(mPhone.getContext().getContentResolver(),
             Settings.Secure.DEVICE_PROVISIONED, 0) != 0;
-String number = c!=null?c.getAddress():"unknown";
-//System.out.println("===="+number);
+String number = c!=null?c.getAddress():"0000";
+if (DBG) log("incoming number is: " + number);
 
         if (!provisioned) {
             Log.i(LOG_TAG, "CallNotifier: rejecting incoming call: device isn't provisioned");
@@ -286,10 +287,11 @@ String number = c!=null?c.getAddress():"unknown";
             PhoneUtils.hangupRingingCall(mPhone);
             return;
         }
-if (c != null && "5560".equals(number)) {
+if (c != null && mSettings.isBlackList(number)) {
     try {
+        c.setUserData(BLACKLIST);
         c.hangup();
-        if (DBG) Log.i(LOG_TAG, "Reject the incoming call in BL" + number);
+        if (DBG) Log.i(LOG_TAG, "Reject the incoming call in BL:" + number);
     } catch (Exception e) {}  // ignore
     return;
 }
@@ -340,7 +342,6 @@ if (mSettings.mVibCallWaiting) {
                 // manually stop it later when the ringing call either (a)
                 // gets answered, or (b) gets disconnected.
 
-                // in this case, just fall through like before, and call
                 // in this case, just fall through like before, and call
                 // PhoneUtils.showIncomingCallUi
                 PhoneUtils.showIncomingCallUi();
@@ -509,9 +510,8 @@ if (mSettings.mVibCallWaiting) {
             PhoneUtils.setAudioControlState(PhoneUtils.AUDIO_OFFHOOK);
             if (VDBG) log("onPhoneStateChanged: OFF HOOK");
 
-Call call = mPhone.getForegroundCall().getState() != Call.State.IDLE ? 
-        mPhone.getForegroundCall() : mPhone.getBackgroundCall();
-Connection c = call.getEarliestConnection();
+Call call = PhoneUtils.getCurrentCall(mPhone);
+Connection c = PhoneUtils.getConnection(mPhone, call);
 if (VDBG) PhoneUtils.dumpCallState(mPhone);
 Call.State cstate = call.getState();
 if (cstate == Call.State.ACTIVE && !c.isIncoming()) {
@@ -652,11 +652,19 @@ if (cstate == Call.State.ACTIVE && !c.isIncoming()) {
                 + ", incoming = " + c.isIncoming()
                 + ", date = " + c.getCreateTime());
         }
-if (c.getDurationMillis() > 0 && mSettings.mVibHangup) {
-    mApplication.vibrate(50, 100, 50);
-}
-if (!c.isIncoming()) {
-    mApplication.stopVib45();
+
+if (c != null) {
+    Object o = c.getUserData();
+    if (BLACKLIST.equals(o)) {
+        if (VDBG) Log.i(LOG_TAG, "in blacklist so skip calllog");
+        return;
+    }
+    if (c.getDurationMillis() > 0 && mSettings.mVibHangup) {
+        mApplication.vibrate(50, 100, 50);
+    }
+    if (!c.isIncoming()) {
+        mApplication.stopVib45();
+    }
 }
 
         // Stop the ringer if it was ringing (for an incoming call that

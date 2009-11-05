@@ -115,6 +115,7 @@ public class CallCard extends FrameLayout
 
 // add by cytown
 private CallFeaturesSetting mSettings;
+private TextView mOrganization;
 
     public CallCard(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -185,6 +186,7 @@ mSettings = CallFeaturesSetting.getInstance(android.preference.PreferenceManager
         mName = (TextView) findViewById(R.id.name);
         mPhoneNumber = (TextView) findViewById(R.id.phoneNumber);
         mLabel = (TextView) findViewById(R.id.label);
+mOrganization = (TextView) findViewById(R.id.organization);
 
         // "Other call" info area
         mOtherCallOngoingIcon = (ImageView) findViewById(R.id.otherCallOngoingIcon);
@@ -1127,13 +1129,13 @@ updateName = true;
 
         if (call.isGeneric()) {
             mName.setText(R.string.card_title_in_call);
+mOrganization.setVisibility(View.GONE);
         } else {
-String oldname = mName.getText().toString();
-if (oldname == null || !(oldname.equals(name) || oldname.startsWith(name + "-"))) {
             mName.setText(name);
-    if (updateName && mSettings.mShowOrgan) {
-        updateOrganization(info.person_id);
-    }
+if (updateName && mSettings.mShowOrgan) {
+    updateOrganization(info.person_id);
+} else {
+    mOrganization.setVisibility(View.GONE);
 }
         }
         mName.setVisibility(View.VISIBLE);
@@ -1174,8 +1176,7 @@ if (oldname == null || !(oldname.equals(name) || oldname.startsWith(name + "-"))
     }
 
 private void updateOrganization(final long person_id) {
-//    Thread t = new Thread(new Runnable() {
-
+//    new android.os.Handler().post(new Runnable() {
 //        public void run() {
             android.database.Cursor c = CallCard.this.getContext().getContentResolver().query(Organizations.CONTENT_URI,
                     new String[] { Organizations.COMPANY },
@@ -1184,16 +1185,18 @@ private void updateOrganization(final long person_id) {
             if (c != null) {
                 if (c.moveToNext()) {
                     try {
-//System.out.println("show organ");
-                        mName.setText(mName.getText() + "-" + c.getString(0));
-//                        mName.invalidate();
+                        if (DBG) Log.d(LOG_TAG, "show organ");
+                        mOrganization.setText(c.getString(0));
+                        mOrganization.setVisibility(View.VISIBLE);
+                        mOrganization.invalidate();
                     } catch (Exception e) {}
+                } else {
+                    mOrganization.setVisibility(View.GONE);
                 }
                 c.close();
             }
 //        }
 //    });
-//    t.start();
 }
 
     private String getPresentationString(int presentation) {
